@@ -56,7 +56,7 @@ parser.add_argument('--multigpu',
                     default=False, type=bool,
                     help='Use mutil Gpu training')
 parser.add_argument('--save_folder',
-                    default='weights/',
+                    default='/mnt/weights/',
                     help='Directory for saving checkpoint models')
 args = parser.parse_args()
 
@@ -79,9 +79,9 @@ if not os.path.exists(save_folder):
     os.mkdir(save_folder)
 
 
-train_dataset = WIDERDetection(cfg.FACE.TRAIN_FILE, mode='train')
+train_dataset = WIDERDetection('/DSFD_pytorch/data/face_train.txt', mode='train')
 
-val_dataset = WIDERDetection(cfg.FACE.VAL_FILE, mode='val')
+val_dataset = WIDERDetection('/DSFD_pytorch/data/face_val.txt', mode='val')
 
 train_loader = data.DataLoader(train_dataset, args.batch_size,
                                num_workers=args.num_workers,
@@ -177,7 +177,7 @@ def train():
             loss.backward()
             optimizer.step()
             t1 = time.time()
-            losses += loss.data[0]
+            losses += loss.data.item()
 
             if iteration % 10 == 0:
                 tloss = losses / (batch_idx + 1)
@@ -185,9 +185,9 @@ def train():
                 print('epoch:' + repr(epoch) + ' || iter:' +
                       repr(iteration) + ' || Loss:%.4f' % (tloss))
                 print('->> pal1 conf loss:{:.4f} || pal1 loc loss:{:.4f}'.format(
-                    loss_c_pal1.data[0], loss_l_pa1l.data[0]))
+                    loss_c_pal1.data.item(), loss_l_pa1l.data.item()))
                 print('->> pal2 conf loss:{:.4f} || pal2 loc loss:{:.4f}'.format(
-                    loss_c_pal2.data[0], loss_l_pa12.data[0]))
+                    loss_c_pal2.data.item(), loss_l_pa12.data.item()))
                 print('->>lr:{}'.format(optimizer.param_groups[0]['lr']))
 
             if iteration != 0 and iteration % 5000 == 0:
