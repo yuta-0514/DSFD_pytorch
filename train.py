@@ -117,7 +117,8 @@ def train():
         base_weights = torch.load(args.save_folder + basenet)
         print('Load base network {}'.format(args.save_folder + basenet))
         if args.model == 'vgg':
-            net.vgg.load_state_dict(base_weights)
+            vgg_weights = torch.load('/mnt/weights/vgg16_reducedfc.pth')
+            net.vgg.load_state_dict(vgg_weights)
         else:
             net.resnet.load_state_dict(base_weights)
 
