@@ -31,9 +31,6 @@ parser.add_argument('--model',
                     default='vgg', type=str,
                     choices=['vgg', 'resnet50', 'resnet101', 'resnet152'],
                     help='model for training')
-parser.add_argument('--resume',
-                    default=None, type=str,
-                    help='Checkpoint state_dict file to resume training from')
 parser.add_argument('--num_workers',
                     default=4, type=int,
                     help='Number of workers used in dataloading')
@@ -109,18 +106,13 @@ def train():
     dsfd_net = build_net('train', cfg.NUM_CLASSES, args.model)
     net = dsfd_net
 
-    if args.resume:
-        print('Resuming training, loading {}...'.format(args.resume))
-        start_epoch = net.load_weights(args.resume)
-        iteration = start_epoch * per_epoch_size
+    base_weights = torch.load(args.save_folder + basenet)
+    print('Load base network {}'.format(args.save_folder + basenet))
+    if args.model == 'vgg':
+        vgg_weights = torch.load('/mnt/weights/vgg16_reducedfc.pth')
+        net.vgg.load_state_dict(vgg_weights)
     else:
-        base_weights = torch.load(args.save_folder + basenet)
-        print('Load base network {}'.format(args.save_folder + basenet))
-        if args.model == 'vgg':
-            vgg_weights = torch.load('/mnt/weights/vgg16_reducedfc.pth')
-            net.vgg.load_state_dict(vgg_weights)
-        else:
-            net.resnet.load_state_dict(base_weights)
+        net.resnet.load_state_dict(base_weights)
 
     if args.cuda:
         if args.multigpu:
@@ -128,28 +120,12 @@ def train():
         net = net.cuda()
         cudnn.benckmark = True
 
-    if not args.resume:
-        print('Initializing weights...')
-        dsfd_net.extras.apply(dsfd_net.weights_init)
-        dsfd_net.fpn_topdown.apply(dsfd_net.weights_init)
-        dsfd_net.fpn_latlayer.apply(dsfd_net.weights_init)
-        dsfd_net.fpn_fem.apply(dsfd_net.weights_init)
-        dsfd_net.loc_pal1.apply(dsfd_net.weights_init)
-        dsfd_net.conf_pal1.apply(dsfd_net.weights_init)
-        dsfd_net.loc_pal2.apply(dsfd_net.weights_init)
-        dsfd_net.conf_pal2.apply(dsfd_net.weights_init)
-
     optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=args.momentum,
                           weight_decay=args.weight_decay)
     criterion = MultiBoxLoss(cfg, args.cuda)
     print('Loading wider dataset...')
     print('Using the specified args:')
     print(args)
-
-    for step in cfg.LR_STEPS:
-        if iteration > step:
-            step_index += 1
-            adjust_learning_rate(optimizer, args.gamma, step_index)
 
     net.train()
     for epoch in range(start_epoch, cfg.EPOCHES):
@@ -163,9 +139,9 @@ def train():
                 images = Variable(images)
                 targets = [Variable(ann, volatile=True) for ann in targets]
 
-            if iteration in cfg.LR_STEPS:
-                step_index += 1
-                adjust_learning_rate(optimizer, args.gamma, step_index)
+            train_loader_len = len(train_loader)
+            adjust_learning_rate(optimizer, epoch, step_index, train_loader_len)
+            step_index += 1
 
             t0 = time.time()
             out = net(images)
@@ -221,7 +197,7 @@ def val(epoch, net, dsfd_net, criterion):
         loss_l_pa1l, loss_c_pal1 = criterion(out[:3], targets)
         loss_l_pa12, loss_c_pal2 = criterion(out[3:], targets)
         loss = loss_l_pa12 + loss_c_pal2
-        losses += loss.data[0]
+        losses += loss.data.item()
         step += 1
 
     tloss = losses / step
@@ -243,13 +219,22 @@ def val(epoch, net, dsfd_net, criterion):
     torch.save(states, os.path.join(save_folder, 'dsfd_checkpoint.pth'))
 
 
-def adjust_learning_rate(optimizer, gamma, step):
-    """Sets the learning rate to the initial LR decayed by 10 at every
-        specified step
-    # Adapted from PyTorch Imagenet example:
-    # https://github.com/pytorch/examples/blob/master/imagenet/main.py
-    """
-    lr = args.lr * (gamma ** (step))
+def adjust_learning_rate(optimizer, epoch, step, len_epoch):
+    """LR schedule that should yield 76% converged accuracy with batch size 256"""
+    factor = epoch // 10
+
+    if epoch >= 30:
+        factor = factor + 1
+
+    lr = 1e-3 * (0.1 ** factor)
+
+    """Warmup"""
+    if epoch < 1:
+        lr = lr * float(1 + step + epoch * len_epoch) / (5. * len_epoch)
+
+    if(step % 10 == 0 and step > 1):
+        print("Epoch = {}, step = {}, lr = {}".format(epoch, step, lr))
+
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
 
