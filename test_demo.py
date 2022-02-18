@@ -28,13 +28,13 @@ parser.add_argument('--network',
                     choices=['vgg', 'resnet50', 'resnet101', 'resnet152'],
                     help='model for training')
 parser.add_argument('--save_dir',
-                    type=str, default='tmp/',
+                    type=str, default='./results',
                     help='Directory for detect result')
-parser.add_argument('--model',
+parser.add_argument('--weights',
                     type=str,
                     default='weights/dsfd_face.pth', help='trained model')
 parser.add_argument('--thresh',
-                    default=0.4, type=float,
+                    default=0.8, type=float,
                     help='Final confidence threshold')
 args = parser.parse_args()
 
@@ -103,14 +103,14 @@ def detect(net, img_path, thresh):
 
 if __name__ == '__main__':
     net = build_net('test', cfg.NUM_CLASSES, args.network)
-    net.load_state_dict(torch.load(args.model))
+    net.load_state_dict(torch.load(args.weights))
     net.eval()
 
     if use_cuda:
         net.cuda()
         cudnn.benckmark = True
 
-    img_path = '/mnt/test.jpg'
+    img_path = "/mnt/test"
     img_list = [os.path.join(img_path, x)
                 for x in os.listdir(img_path) if x.endswith('jpg')]
     for path in img_list:
