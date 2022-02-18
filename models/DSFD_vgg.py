@@ -217,7 +217,7 @@ class DSFD(nn.Module):
                 loc_pal2.view(loc_pal2.size(0), -1, 4),
                 self.softmax(conf_pal2.view(conf_pal2.size(0), -1,
                                             self.num_classes)),                # conf preds
-                self.priors_pal2.type(type(x.data))
+                self.priors_pal2.type(type(x.data)).to("cuda")
             )
 
         else:
