@@ -700,10 +700,10 @@ def anchor_crop_image_sampling(img,
                     sampled_labels += [sample_label]
                 sampled_labels = np.array(sampled_labels)
             else:
-            current_boxes /= np.array([image_width,
-                                       image_height, image_width, image_height])
-            sampled_labels = np.hstack(
-                (current_labels[:, np.newaxis], current_boxes))
+                current_boxes /= np.array([image_width,
+                                        image_height, image_width, image_height])
+                sampled_labels = np.hstack(
+                    (current_labels[:, np.newaxis], current_boxes))
             return current_image, sampled_labels
 
         current_image = image[choice_box[1]:choice_box[

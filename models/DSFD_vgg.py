@@ -97,7 +97,7 @@ class DSFD(nn.Module):
 
     def _upsample_prod(self, x, y):
         _, _, H, W = y.size()
-        return F.upsample(x, size=(H, W), mode='bilinear') * y
+        return F.interpolate(x, size=(H, W), mode='bilinear', align_corners=True) * y
 
     def forward(self, x):
         size = x.size()[2:]
@@ -198,12 +198,14 @@ class DSFD(nn.Module):
                               for o in loc_pal2], 1)
         conf_pal2 = torch.cat([o.view(o.size(0), -1)
                                for o in conf_pal2], 1)
+        
+        with torch.no_grad():
+            priorbox = PriorBox(size, features_maps, pal=1)
+            self.priors_pal1 = priorbox.forward()
 
-        priorbox = PriorBox(size, features_maps, pal=1)
-        self.priors_pal1 = Variable(priorbox.forward(), volatile=True)
-
-        priorbox = PriorBox(size, features_maps, pal=2)
-        self.priors_pal2 = Variable(priorbox.forward(), volatile=True)
+        with torch.no_grad():
+            priorbox = PriorBox(size, features_maps, pal=2)
+            self.priors_pal2 = priorbox.forward()
 
         if self.phase == 'test':
             output = self.detect(
