@@ -1,9 +1,3 @@
-#-*- coding:utf-8 -*-
-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 import torch
 from PIL import Image, ImageDraw
 import torch.utils.data as data
@@ -123,7 +117,6 @@ def detection_collate(batch):
 
 
 if __name__ == '__main__':
-    from config import cfg
-    dataset = WIDERDetection(cfg.FACE.TRAIN_FILE)
+    dataset = WIDERDetection('./data/face_train.txt')
     #for i in range(len(dataset)):
     dataset.pull_item(14)

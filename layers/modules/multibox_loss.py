@@ -1,9 +1,3 @@
-#-*- coding:utf-8 -*-
-
-from __future__ import division
-from __future__ import absolute_import
-from __future__ import print_function
-
 import math
 import torch
 import torch.nn as nn
@@ -37,14 +31,14 @@ class MultiBoxLoss(nn.Module):
         See: https://arxiv.org/pdf/1512.02325.pdf for more details.
     """
 
-    def __init__(self, cfg, use_gpu=True):
+    def __init__(self, use_gpu=True):
         super(MultiBoxLoss, self).__init__()
         self.use_gpu = use_gpu
-        self.num_classes = cfg.NUM_CLASSES
-        self.negpos_ratio = cfg.NEG_POS_RATIOS
-        self.variance = cfg.VARIANCE
+        self.num_classes = 2
+        self.negpos_ratio = 3
+        self.variance = [0.1, 0.2]
 
-        self.threshold = cfg.FACE.OVERLAP_THRESH
+        self.threshold = 0.35
         self.match = match_ssd
 
     def forward(self, predictions, targets):

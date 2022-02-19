@@ -1,9 +1,3 @@
-#-*- coding:utf-8 -*-
-
-from __future__ import division
-from __future__ import absolute_import
-from __future__ import print_function
-
 import torch
 
 from ..bbox_utils import decode, nms
@@ -17,13 +11,13 @@ class Detect(Function):
     confidence score and locations.
     """
 
-    def __init__(self, cfg):
-        self.num_classes = cfg.NUM_CLASSES
-        self.top_k = cfg.TOP_K
-        self.nms_thresh = cfg.NMS_THRESH
-        self.conf_thresh = cfg.CONF_THRESH
-        self.variance = cfg.VARIANCE
-        self.nms_top_k = cfg.NMS_TOP_K
+    def __init__(self):
+        self.num_classes = 2
+        self.top_k = 750
+        self.nms_thresh = 0.3
+        self.conf_thresh = 0.05
+        self.variance = [0.1, 0.2]
+        self.nms_top_k = 5000
 
     def forward(self, loc_data, conf_data, prior_data):
         """

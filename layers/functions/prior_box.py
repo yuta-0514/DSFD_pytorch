@@ -1,9 +1,3 @@
-#-*- coding:utf-8 -*-
-
-from __future__ import division
-from __future__ import absolute_import
-from __future__ import print_function
-
 import torch
 from itertools import product as product
 import math
@@ -14,21 +8,20 @@ class PriorBox(object):
     feature map.
     """
 
-    def __init__(self, input_size, feature_maps,cfg,pal=2):
+    def __init__(self, input_size, feature_maps,pal=2):
         super(PriorBox, self).__init__()
         self.imh = input_size[0]
         self.imw = input_size[1]
 
         # number of priors for feature map location (either 4 or 6)
-        self.variance = cfg.VARIANCE or [0.1]
-        #self.feature_maps = cfg.FEATURE_MAPS
+        self.variance = [0.1, 0.2] or [0.1]
         if pal==1:
-            self.min_sizes = cfg.ANCHOR_SIZES1
+            self.min_sizes = [8, 16, 32, 64, 128, 256]
         elif pal==2:
-            self.min_sizes = cfg.ANCHOR_SIZES2
-        self.aspect_ratio = cfg.ASPECT_RATIO
-        self.steps = cfg.STEPS
-        self.clip = cfg.CLIP
+            self.min_sizes = [16, 32, 64, 128, 256, 512]
+        self.aspect_ratio = [1.0]
+        self.steps = [4, 8, 16, 32, 64, 128]
+        self.clip = False
         for v in self.variance:
             if v <= 0:
                 raise ValueError('Variances must be greater than 0')
@@ -56,10 +49,3 @@ class PriorBox(object):
         if self.clip:
             output.clamp_(max=1, min=0)
         return output
-
-
-if __name__ == '__main__':
-    from data.config import cfg
-    p = PriorBox([640, 640], cfg)
-    out = p.forward()
-    print(out.size())

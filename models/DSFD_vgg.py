@@ -1,9 +1,3 @@
-#-*- coding:utf-8 -*-
-
-from __future__ import division
-from __future__ import absolute_import
-from __future__ import print_function
-
 import os
 import numpy as np
 
@@ -14,7 +8,6 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 
 from layers import *
-from data.config import cfg
 
 
 class FEM(nn.Module):
@@ -100,7 +93,7 @@ class DSFD(nn.Module):
 
         if self.phase=='test':
             self.softmax = nn.Softmax(dim=-1)
-            self.detect = Detect(cfg)
+            self.detect = Detect()
 
     def _upsample_prod(self, x, y):
         _, _, H, W = y.size()
@@ -206,10 +199,10 @@ class DSFD(nn.Module):
         conf_pal2 = torch.cat([o.view(o.size(0), -1)
                                for o in conf_pal2], 1)
 
-        priorbox = PriorBox(size, features_maps, cfg, pal=1)
+        priorbox = PriorBox(size, features_maps, pal=1)
         self.priors_pal1 = Variable(priorbox.forward(), volatile=True)
 
-        priorbox = PriorBox(size, features_maps, cfg, pal=2)
+        priorbox = PriorBox(size, features_maps, pal=2)
         self.priors_pal2 = Variable(priorbox.forward(), volatile=True)
 
         if self.phase == 'test':

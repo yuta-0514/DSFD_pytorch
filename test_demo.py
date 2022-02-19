@@ -1,8 +1,3 @@
-#-*- coding:utf-8 -*-
-from __future__ import division
-from __future__ import absolute_import
-from __future__ import print_function
-
 import os
 import torch
 import argparse
@@ -16,7 +11,6 @@ import time
 import numpy as np
 from PIL import Image
 
-from data.config import cfg
 from models.factory import build_net
 from torch.autograd import Variable
 from utils.augmentations import to_chw_bgr
@@ -64,7 +58,7 @@ def detect(net, img_path, thresh):
 
     x = to_chw_bgr(image)
     x = x.astype('float32')
-    x -= cfg.img_mean
+    x -= np.array([104., 117., 123.])[:, np.newaxis, np.newaxis].astype('float32')
     x = x[[2, 1, 0], :, :]
 
     x = Variable(torch.from_numpy(x).unsqueeze(0))
@@ -102,7 +96,7 @@ def detect(net, img_path, thresh):
 
 
 if __name__ == '__main__':
-    net = build_net('test', cfg.NUM_CLASSES, args.network)
+    net = build_net('test', 2, args.network)
     net.load_state_dict(torch.load(args.weights))
     net.eval()
 

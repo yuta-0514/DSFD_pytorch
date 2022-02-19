@@ -122,7 +122,7 @@ def train():
 
     optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=args.momentum,
                           weight_decay=args.weight_decay)
-    criterion = MultiBoxLoss(cfg, args.cuda)
+    criterion = MultiBoxLoss(args.cuda)
     print('Loading wider dataset...')
     print('Using the specified args:')
     print(args)

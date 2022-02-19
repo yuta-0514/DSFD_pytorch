@@ -1,12 +1,4 @@
-#-*- coding:utf-8 -*-
-
-from __future__ import division
-from __future__ import absolute_import
-from __future__ import print_function
-
-
 import os
-from data.config import cfg
 import cv2
 
 WIDER_ROOT = '/mnt/widerface'
@@ -55,7 +47,7 @@ def parse_wider_file(root, file):
 
 def wider_data_file():
     img_paths, bbox = parse_wider_file(WIDER_TRAIN, train_list_file)
-    fw = open(cfg.FACE.TRAIN_FILE, 'w')
+    fw = open('./data/face_train.txt', 'w')
     for index in range(len(img_paths)):
         path = img_paths[index]
         boxes = bbox[index]
@@ -68,7 +60,7 @@ def wider_data_file():
     fw.close()
 
     img_paths, bbox = parse_wider_file(WIDER_VAL, val_list_file)
-    fw = open(cfg.FACE.VAL_FILE, 'w')
+    fw = open('./data/face_val.txt', 'w')
     for index in range(len(img_paths)):
         path = img_paths[index]
         boxes = bbox[index]

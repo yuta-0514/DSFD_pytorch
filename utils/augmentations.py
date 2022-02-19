@@ -1,10 +1,3 @@
-#-*- coding:utf-8 -*-
-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
-
 import torch
 from torchvision import transforms
 import cv2
@@ -13,7 +6,6 @@ import types
 from PIL import Image, ImageEnhance, ImageDraw
 import math
 import six
-from data.config import cfg
 import random
 
 
@@ -82,35 +74,32 @@ class bbox():
 
 def random_brightness(img):
     prob = np.random.uniform(0, 1)
-    if prob < cfg.brightness_prob:
-        delta = np.random.uniform(-cfg.brightness_delta,
-                                  cfg.brightness_delta) + 1
+    if prob < 0.5:
+        delta = np.random.uniform(-0.125, 0.125) + 1
         img = ImageEnhance.Brightness(img).enhance(delta)
     return img
 
 
 def random_contrast(img):
     prob = np.random.uniform(0, 1)
-    if prob < cfg.contrast_prob:
-        delta = np.random.uniform(-cfg.contrast_delta,
-                                  cfg.contrast_delta) + 1
+    if prob < 0.5:
+        delta = np.random.uniform(-0.5, 0.5) + 1
         img = ImageEnhance.Contrast(img).enhance(delta)
     return img
 
 
 def random_saturation(img):
     prob = np.random.uniform(0, 1)
-    if prob < cfg.saturation_prob:
-        delta = np.random.uniform(-cfg.saturation_delta,
-                                  cfg.saturation_delta) + 1
+    if prob < 0.5:
+        delta = np.random.uniform(-0.5, 0.5) + 1
         img = ImageEnhance.Color(img).enhance(delta)
     return img
 
 
 def random_hue(img):
     prob = np.random.uniform(0, 1)
-    if prob < cfg.hue_prob:
-        delta = np.random.uniform(-cfg.hue_delta, cfg.hue_delta)
+    if prob < 0.5:
+        delta = np.random.uniform(-18, 18)
         img_hsv = np.array(img.convert('HSV'))
         img_hsv[:, :, 0] = img_hsv[:, :, 0] + delta
         img = Image.fromarray(img_hsv, mode='HSV').convert('RGB')
@@ -187,9 +176,9 @@ def transform_labels(bbox_labels, sample_bbox):
 
 def expand_image(img, bbox_labels, img_width, img_height):
     prob = np.random.uniform(0, 1)
-    if prob < cfg.expand_prob:
-        if cfg.expand_max_ratio - 1 >= 0.01:
-            expand_ratio = np.random.uniform(1, cfg.expand_max_ratio)
+    if prob < 0.5:
+        if 4 - 1 >= 0.01:
+            expand_ratio = np.random.uniform(1, 4)
             height = int(img_height * expand_ratio)
             width = int(img_width * expand_ratio)
             h_off = math.floor(np.random.uniform(0, height - img_height))
@@ -198,7 +187,7 @@ def expand_image(img, bbox_labels, img_width, img_height):
                                (width - w_off) / img_width,
                                (height - h_off) / img_height)
             expand_img = np.ones((height, width, 3))
-            expand_img = np.uint8(expand_img * np.squeeze(cfg.img_mean))
+            expand_img = np.uint8(expand_img * np.squeeze(np.array([104., 117., 123.])[:, np.newaxis, np.newaxis].astype('float32')))
             expand_img = Image.fromarray(expand_img)
             expand_img.paste(img, (int(w_off), int(h_off)))
             bbox_labels = transform_labels(bbox_labels, expand_bbox)
@@ -694,11 +683,11 @@ def anchor_crop_image_sampling(img,
             current_image = image_pad[
                 start_top:end_bottom, start_left:end_right, :].copy()
             image_height, image_width, _ = current_image.shape
-            if cfg.filter_min_face:
+            if True:
                 bbox_w = current_boxes[:, 2] - current_boxes[:, 0]
                 bbox_h = current_boxes[:, 3] - current_boxes[:, 1]
                 bbox_area = bbox_w * bbox_h
-                mask = bbox_area > (cfg.min_face_size * cfg.min_face_size)
+                mask = bbox_area > (6.0 * 6.0)
                 current_boxes = current_boxes[mask]
                 current_labels = current_labels[mask]
                 for i in range(len(current_boxes)):
@@ -711,22 +700,21 @@ def anchor_crop_image_sampling(img,
                     sampled_labels += [sample_label]
                 sampled_labels = np.array(sampled_labels)
             else:
-                current_boxes /= np.array([image_width,
-                                           image_height, image_width, image_height])
-                sampled_labels = np.hstack(
-                    (current_labels[:, np.newaxis], current_boxes))
-
+            current_boxes /= np.array([image_width,
+                                       image_height, image_width, image_height])
+            sampled_labels = np.hstack(
+                (current_labels[:, np.newaxis], current_boxes))
             return current_image, sampled_labels
 
         current_image = image[choice_box[1]:choice_box[
             3], choice_box[0]:choice_box[2], :].copy()
         image_height, image_width, _ = current_image.shape
 
-        if cfg.filter_min_face:
+        if True:
             bbox_w = current_boxes[:, 2] - current_boxes[:, 0]
             bbox_h = current_boxes[:, 3] - current_boxes[:, 1]
             bbox_area = bbox_w * bbox_h
-            mask = bbox_area > (cfg.min_face_size * cfg.min_face_size)
+            mask = bbox_area > (6.0 * 6.0)
             current_boxes = current_boxes[mask]
             current_labels = current_labels[mask]
             for i in range(len(current_boxes)):
@@ -747,11 +735,11 @@ def anchor_crop_image_sampling(img,
         return current_image, sampled_labels
     else:
         image_height, image_width, _ = image.shape
-        if cfg.filter_min_face:
+        if True:
             bbox_w = boxes[:, 2] - boxes[:, 0]
             bbox_h = boxes[:, 3] - boxes[:, 1]
             bbox_area = bbox_w * bbox_h
-            mask = bbox_area > (cfg.min_face_size * cfg.min_face_size)
+            mask = bbox_area > (6.0 * 6.0)
             boxes = boxes[mask]
             labels = labels[mask]
             for i in range(len(boxes)):
@@ -776,33 +764,19 @@ def preprocess(img, bbox_labels, mode, image_path):
     img_width, img_height = img.size
     sampled_labels = bbox_labels
     if mode == 'train':
-        if cfg.apply_distort:
+        if True:
             img = distort_image(img)
-        if cfg.apply_expand:
+        if False:
             img, bbox_labels, img_width, img_height = expand_image(
                 img, bbox_labels, img_width, img_height)
 
         batch_sampler = []
         prob = np.random.uniform(0., 1.)
-        if prob > cfg.data_anchor_sampling_prob and cfg.anchor_sampling:
+        if prob > 0.5:
             scale_array = np.array([16, 32, 64, 128, 256, 512])
-            '''
-            batch_sampler.append(
-                sampler(1, 50, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.6, 0.0, True))
-            sampled_bbox = generate_batch_random_samples(
-                batch_sampler, bbox_labels, img_width, img_height, scale_array,
-                cfg.resize_width, cfg.resize_height)
-            '''
             img = np.array(img)
             img, sampled_labels = anchor_crop_image_sampling(
                 img, bbox_labels, scale_array, img_width, img_height)
-            '''
-            if len(sampled_bbox) > 0:
-                idx = int(np.random.uniform(0, len(sampled_bbox)))
-                img, sampled_labels = crop_image_sampling(
-                    img, bbox_labels, sampled_bbox[idx], img_width, img_height,
-                    cfg.resize_width, cfg.resize_height, cfg.min_face_size)
-            '''
             img = img.astype('uint8')
             img = Image.fromarray(img)
         else:
@@ -824,7 +798,7 @@ def preprocess(img, bbox_labels, mode, image_path):
                 idx = int(np.random.uniform(0, len(sampled_bbox)))
                 img, sampled_labels = crop_image(
                     img, bbox_labels, sampled_bbox[idx], img_width, img_height,
-                    cfg.resize_width, cfg.resize_height, cfg.min_face_size)
+                    640, 640, 6.0)
 
             img = Image.fromarray(img)
 
@@ -834,7 +808,7 @@ def preprocess(img, bbox_labels, mode, image_path):
     ]
     interp_indx = np.random.randint(0, 5)
 
-    img = img.resize((cfg.resize_width, cfg.resize_height),
+    img = img.resize((640, 640),
                      resample=interp_mode[interp_indx])
 
     img = np.array(img)
@@ -851,8 +825,7 @@ def preprocess(img, bbox_labels, mode, image_path):
     #img = Image.fromarray(img)
     img = to_chw_bgr(img)
     img = img.astype('float32')
-    img -= cfg.img_mean
+    img -= np.array([104., 117., 123.])[:, np.newaxis, np.newaxis].astype('float32')
     img = img[[2, 1, 0], :, :]  # to RGB
-    #img = img * cfg.scale
 
     return img, sampled_labels
