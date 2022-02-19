@@ -1,9 +1,3 @@
-#-*- coding:utf-8 -*-
-
-from __future__ import division
-from __future__ import absolute_import
-from __future__ import print_function
-
 import os
 import time
 import torch
@@ -16,7 +10,6 @@ import numpy as np
 from torch.autograd import Variable
 import torch.backends.cudnn as cudnn
 
-from data.config import cfg
 from layers.modules import MultiBoxLoss
 from data.widerface import WIDERDetection, detection_collate
 from models.factory import build_net, basenet_factory
@@ -103,7 +96,7 @@ def train():
     step_index = 0
 
     basenet = basenet_factory(args.model)
-    dsfd_net = build_net('train', cfg.NUM_CLASSES, args.model)
+    dsfd_net = build_net('train', 2, args.model)
     net = dsfd_net
 
     base_weights = torch.load(args.save_folder + basenet)
@@ -128,7 +121,7 @@ def train():
     print(args)
 
     net.train()
-    for epoch in range(start_epoch, cfg.EPOCHES):
+    for epoch in range(start_epoch, 50):
         losses = 0
         for batch_idx, (images, targets) in enumerate(train_loader):
             if args.cuda:
@@ -175,7 +168,7 @@ def train():
             iteration += 1
 
         val(epoch, net, dsfd_net, criterion)
-        if iteration == cfg.MAX_STEPS:
+        if iteration == 150000:
             break
 
 
