@@ -19,7 +19,6 @@ I'm using resnet50/resnet101 to train DSFD,the result will be published later on
 * pytorch 0.3 
 * opencv 
 * numpy 
-* easydict
 
 ### Prepare data 
 1. download WIDER face dataset
@@ -35,36 +34,15 @@ python train.py --batch_size 4
 ``` 
 
 ### Evalution
-according to yourself dataset path,modify data/config.py 
-1. Evaluate on AFW.
+test on WIDER FACE 
 ```
-python tools/afw_test.py
-```
-2. Evaluate on FDDB 
-```
-python tools/fddb_test.py
-```
-3. Evaluate on PASCAL  face 
-``` 
-python tools/pascal_test.py
-```
-4. test on WIDER FACE 
-```
-python tools/wider_test.py
+python test.py
 ```
 ### Demo 
 you can test yourself image
 ```
-python demo.py
+python test_demo.py
 ```
-
-### Result
-1. demo
-<div align="center">
-<img src="https://github.com/yxlijun/DSFD.pytorch/blob/master/tmp/0_Parade_marchingband_1_488.jpg" height="300px" alt="demo" >
-<img src="https://github.com/yxlijun/DSFD.pytorch/blob/master/tmp/0_Parade_marchingband_1_20.jpg" height="300px" alt="demo" >
-</div>
-
 
 ### References
 * [Dual Shot Face Detector](https://arxiv.org/abs/1810.10220?utm_source=feedburner&utm_medium=feed&utm_campaign=Feed%3A+arxiv%2FQSXk+%28ExcitingAds%21+cs+updates+on+arXiv.org%29)
