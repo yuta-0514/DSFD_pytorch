@@ -93,7 +93,7 @@ class DSFD(nn.Module):
 
         if self.phase=='test':
             self.softmax = nn.Softmax(dim=-1)
-            self.detect = Detect()
+            self.detect = Detect.apply
 
     def _upsample_prod(self, x, y):
         _, _, H, W = y.size()

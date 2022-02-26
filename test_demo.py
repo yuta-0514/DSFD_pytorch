@@ -104,7 +104,7 @@ if __name__ == '__main__':
         net.cuda()
         cudnn.benckmark = True
 
-    img_path = "img/"
+    img_path = "/mnt/img"
     img_list = [os.path.join(img_path, x)
                 for x in os.listdir(img_path) if x.endswith('jpg')]
     for path in img_list:
