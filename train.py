@@ -204,12 +204,8 @@ def val(epoch, net, dsfd_net, criterion):
         torch.save(dsfd_net.state_dict(), os.path.join(
             save_folder, 'dsfd.pth'))
         min_loss = tloss
-
-    states = {
-        'epoch': epoch,
-        'weight': dsfd_net.state_dict(),
-    }
-    torch.save(states, os.path.join(save_folder, 'dsfd_checkpoint.pth'))
+    
+    torch.save(dsfd_net.state_dict(), os.path.join(save_folder, 'dsfd_{}.pth'.format(epoch)))
 
 
 def adjust_learning_rate(optimizer, epoch, step, len_epoch):
