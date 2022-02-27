@@ -99,13 +99,20 @@ def train():
     dsfd_net = build_net('train', 2, args.model)
     net = dsfd_net
 
-    base_weights = torch.load(args.save_folder + basenet)
+    # base_weights = torch.load(args.save_folder + basenet)
     print('Load base network {}'.format(args.save_folder + basenet))
     if args.model == 'vgg':
         vgg_weights = torch.load('/mnt/weights/vgg16_reducedfc.pth')
         net.vgg.load_state_dict(vgg_weights)
-    else:
-        net.resnet.load_state_dict(base_weights)
+    elif args.model == 'resnet50':
+        resnet_weights = torch.load('/mnt/weights/resnet50-0676ba61.pth')
+        net.resnet.load_state_dict(resnet_weights, strict=False)
+    elif args.model == 'resnet101':
+        resnet_weights = torch.load('/mnt/weights/resnet101-63fe2227.pth')
+        net.resnet.load_state_dict(resnet_weights, strict=False)
+    elif args.model == 'resnet152':
+        resnet_weights = torch.load('/mnt/weights/resnet152-394f9c45.pth')
+        net.resnet.load_state_dict(resnet_weights, strict=False)
 
     if args.cuda:
         if args.multigpu:
