@@ -133,11 +133,10 @@ def train():
         for batch_idx, (images, targets) in enumerate(train_loader):
             if args.cuda:
                 images = Variable(images.cuda())
-                targets = [Variable(ann.cuda(), volatile=True)
-                           for ann in targets]
+                targets =  [Variable(ann.cuda(), requires_grad=False) for ann in targets]
             else:
                 images = Variable(images)
-                targets = [Variable(ann, volatile=True) for ann in targets]
+                targets =  [Variable(ann.to(device), requires_grad=False) for ann in targets]
 
             train_loader_len = len(train_loader)
             adjust_learning_rate(optimizer, epoch, step_index, train_loader_len)
